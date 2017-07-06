@@ -574,6 +574,8 @@ keystore* OS_DupKeys(const keystore *keys) {
     copy->inode = keys->inode;
     copy->id_counter = keys->id_counter;
 
+    debug2("%s: DEBUG: OS_DupKeys(%u)", __local_name, keys->keysize);
+
     for (i = 0; i <= keys->keysize; i++) {
         os_calloc(1, sizeof(keyentry), copy->keyentries[i]);
         copy->keyentries[i]->rcvd = keys->keyentries[i]->rcvd;
@@ -581,30 +583,49 @@ keystore* OS_DupKeys(const keystore *keys) {
         copy->keyentries[i]->keyid = keys->keyentries[i]->keyid;
         copy->keyentries[i]->global = keys->keyentries[i]->global;
 
-        if (keys->keyentries[i]->id)
-            copy->keyentries[i]->id = strdup(keys->keyentries[i]->id);
+        if (keys->keyentries[i]->id) {
+            debug2("%s: DEBUG: Duplicating key[%u]->id", __local_name, i);
+             copy->keyentries[i]->id = strdup(keys->keyentries[i]->id);
+        } else {
+            debug2("%s: DEBUG: key[%u]->id was null", __local_name, i);
+        }
 
-        if (keys->keyentries[i]->key)
+        if (keys->keyentries[i]->key) {
+            debug2("%s: DEBUG: Duplicating key[%u]->name", __local_name, i);
             copy->keyentries[i]->key = strdup(keys->keyentries[i]->key);
+        } else {
+            debug2("%s: DEBUG: key[%u]->key was null", __local_name, i);
+        }
 
-        if (keys->keyentries[i]->name)
+        if (keys->keyentries[i]->name) {
+            debug2("%s: DEBUG: Duplicating key[%u]->name", __local_name, i);
             copy->keyentries[i]->name = strdup(keys->keyentries[i]->name);
+        } else {
+            debug2("%s: DEBUG: key[%u]->name was null", __local_name, i);
+        }
 
         if (keys->keyentries[i]->ip) {
+            debug2("%s: DEBUG: Duplicating key[%u]->ip", __local_name, i);
             os_calloc(1, sizeof(os_ip), copy->keyentries[i]->ip);
             copy->keyentries[i]->ip->ip = strdup(keys->keyentries[i]->ip->ip);
-        }
+        } else debug2("%s: DEBUG: key[%u]->ip was null", __local_name, i);
 
         copy->keyentries[i]->sock = keys->keyentries[i]->sock;
         copy->keyentries[i]->peer_info = keys->keyentries[i]->peer_info;
     }
 
     if (keys->removed_keys) {
+        debug2("%s: DEBUG: Duplicating removed keys (%lu)", __local_name, keys->removed_keys_size);
+
         copy->removed_keys_size = keys->removed_keys_size;
         os_calloc(keys->removed_keys_size, sizeof(char*), copy->removed_keys);
 
-        for (i = 0; i < keys->removed_keys_size; i++)
+        for (i = 0; i < keys->removed_keys_size; i++) {
+            debug2("%s: DEBUG: Copying key [%u] = '%.32s...'", __local_name, i, keys->removed_keys[i] ? keys->removed_keys[i] : "(null)");
             copy->removed_keys[i] = strdup(keys->removed_keys[i]);
+        }
+    } else {
+        debug2("%s: DEBUG: Skipping duplicate removed keys", __local_name);
     }
 
     return copy;
